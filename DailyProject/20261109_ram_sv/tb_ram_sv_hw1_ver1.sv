@@ -21,6 +21,7 @@ class transaction;
 endclass
 class generator;
     transaction tr;
+    transaction tr_scb;
     mailbox #(transaction) gen2drv_mbox;
     mailbox #(transaction) gen2scb_mbox;
     event gen_next_evt;
@@ -36,8 +37,9 @@ class generator;
         repeat (run_count) begin
             tr = new;
             tr.randomize();
+            tr_scb = new tr;
             gen2drv_mbox.put(tr);
-            gen2scb_mbox.put(tr);
+            gen2scb_mbox.put(tr_scb);
             tr.debug_print("GEN");
             @(gen_next_evt);
         end
@@ -112,14 +114,8 @@ class scoreboard;
         this.gen2scb_mbox = gen2scb_mbox;
         this.gen_next_evt = gen_next_evt;
     endfunction
-
-
     logic [7:0] expected_buf[0:63];
     int pass_cnt, fail_cnt, total_cnt = 0;
-    logic reg_addr, reg_rdata, reg_wdata;
-    bit first = 1;
-
-
     task run();
         forever begin
             mon2scb_mbox.get(mon_tr);
@@ -132,21 +128,15 @@ class scoreboard;
             // if (first) begin
             //     first = 0;
             // end else 
-            if (expected_buf[mon_tr.addr] === mon_tr.rdata) begin
+            if (expected_buf[gen_tr.addr] === mon_tr.rdata) begin
                 $display("[pass] expected = %d , mon_tr.rdata = %d",
-                         expected_buf[mon_tr.addr], mon_tr.rdata);
+                         expected_buf[gen_tr.addr], mon_tr.rdata);
                 pass_cnt++;
             end else begin
                 fail_cnt++;
                 $display("[fail] expected = %d, mon_tr.rdata = %d , mon_tr.addr = %d",
-                         expected_buf[mon_tr.addr], mon_tr.rdata,mon_tr.addr);
-                        
+                         expected_buf[gen_tr.addr], mon_tr.rdata,mon_tr.addr);  
             end
-
-            reg_addr  = mon_tr.addr;
-            reg_rdata = mon_tr.rdata;
-            reg_wdata = mon_tr.wdata;
-
 
             // if (tr.we) begin
             //     //store for expected buffer
