@@ -134,6 +134,7 @@ module baud_tick (
 
     always_ff @(posedge clk, posedge rst) begin
         if (rst) begin
+            counter<=0;
             b_tick <= 0;
         end else begin
             if (counter == F_COUNT - 1) begin
