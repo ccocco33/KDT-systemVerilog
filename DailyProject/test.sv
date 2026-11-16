@@ -1,6 +1,6 @@
 
-*flip-flop왜쓸까?
-*pll
+// *flip-flop왜쓸까?
+// *pll
 //1====================================================================================
 // module mux_4x1(input [3:0]data_in,input[1:0]sel);
 // endmodule
@@ -118,71 +118,182 @@
 // (f) 불가,시뮬레이터에서 tcl로 출력하기 위함
 
 //17====================================================================================
-race condition
-1. 출력에 대한 race condition
-(여러 always문에서 값 할당)
-2. 시뮬레이션에서 
-fork
- a=b;
- a=c;
-join
-//18====================================================================================
-wire: net자료형, port와 port연결시 사용,net to net 연결, 대입 불가능
-reg: 값 저장, 입력 변수용으로 사용(always ,inital),소자를 의미하지 않는다.
-//19====================================================================================
-(1) carry처리가 안됨, over-flow처리 안됨
-(2) cnt 가 16에 도달 불가능. 4bit는 0~15까지.
-//20====================================================================================
-(a)sensitivity list 가 모든 입력 출력 항목을 포함하지 않았다.
-(b)ok
-(c)non-blocking으로 처리되어야한다.(순차)
-//21====================================================================================
-setup: ff의 입력이 clk의 edge 이전에 din(입력)이 유지되어야하는 시간. din의 변화가 있으면 metastable이 발생한다.
-hold: ff의 입력이 clk의 edge이후에 din(입력)이 유지되어야하는 시간 din의 변화가 있으면 metastable이 발생한다.
-//22====================================================================================
-always@(posedge clk)begin
-    if(!rst_n)q<=0;
-    else if(clk_en)q<=d;
-end
-//23====================================================================================
-동기 리셋
-- 장: clk에 동기화되어있어 출력이 reset과 clk에 동기되어 변경.
-- 장: reset 신호의 glich에 강함. why?reset신호가 clk의 edge에 동기화됨
-- 단: 실시간이 아니라 clk의 edge에 동기되어 변경
-- 단: clk skew에 따른 race condition발생(metastable),clk skew: ff의 clk에 도달하는 시간 지연
+// race condition
+// 1. 출력에 대한 race condition
+// (여러 always문에서 값 할당)
+// 2. 시뮬레이션에서 
+// fork
+//  a=b;
+//  a=c;
+// join
 
-비동기 리셋
-- 장: 즉각적 빠른 반응 why? clk에 비동기되어 reset신호의 edge에 동작 가능
-- 단: noise에 취약함
-- 단: reset신호와 clk신호가 동시에 바뀔때 metastable발생 할 수 있음
-*metastable은 cmos소자의 고장의 원인이 될 수 있다.(cmos는 중간레벨의 전압일 때 open된다. -> 과전류-> 쇼트남->고장)
+
+//18====================================================================================
+// wire: net자료형, port와 port연결시 사용,net to net 연결, 대입 불가능
+// reg: 값 저장, 입력 변수용으로 사용(always ,inital),소자를 의미하지 않는다.
+
+
+//19====================================================================================
+// (1) carry처리가 안됨, over-flow처리 안됨
+// (2) cnt 가 16에 도달 불가능. 4bit는 0~15까지.
+
+
+//20====================================================================================
+// (a)sensitivity list 가 모든 입력 출력 항목을 포함하지 않았다.
+// (b)ok
+// (c)non-blocking으로 처리되어야한다.(순차)
+
+
+//21====================================================================================
+// setup: ff의 입력이 clk의 edge 이전에 din(입력)이 유지되어야하는 시간. din의 변화가 있으면 metastable이 발생한다.
+// hold: ff의 입력이 clk의 edge이후에 din(입력)이 유지되어야하는 시간 din의 변화가 있으면 metastable이 발생한다.
+
+
+//22====================================================================================
+// always@(posedge clk)begin
+//     if(!rst_n)q<=0;
+//     else if(clk_en)q<=d;
+// end
+
+
+//23====================================================================================
+// 동기 리셋
+// - 장: clk에 동기화되어있어 출력이 reset과 clk에 동기되어 변경.
+// - 장: reset 신호의 glich에 강함. why?reset신호가 clk의 edge에 동기화됨
+// - 단: 실시간이 아니라 clk의 edge에 동기되어 변경
+// - 단: clk skew에 따른 race condition발생(metastable),clk skew: ff의 clk에 도달하는 시간 지연
+
+// 비동기 리셋
+// - 장: 즉각적 빠른 반응 why? clk에 비동기되어 reset신호의 edge에 동작 가능
+// - 단: noise에 취약함
+// - 단: reset신호와 clk신호가 동시에 바뀔때 metastable발생 할 수 있음
+// *metastable은 cmos소자의 고장의 원인이 될 수 있다.(cmos는 중간레벨의 전압일 때 open된다. -> 과전류-> 쇼트남->고장)
+
+
 //25====================================================================================
-setup violation : 
-    조합 논리의 처리 지연시간 : tcp cp: combinational logic propagation delay
-    순차 논리 ff의 출력 지연 시간 :tcq cq: clk edge to q 출력시간
-    tcp+tcq +setup <= clk의 주기보다 작아야한다.(negative slacktime이 양수를 유지해야한다.)
-hold violation :
-    din이 clk edge보다 빠르게 도착할 때 발생.clock line에 buffer를 추가하여 위상을 맞춰야 한다.
+// setup violation : 
+//     조합 논리의 처리 지연시간 : tcp cp: combinational logic propagation delay
+//     순차 논리 ff의 출력 지연 시간 :tcq cq: clk edge to q 출력시간
+//     tcp+tcq +setup <= clk의 주기보다 작아야한다.(negative slacktime이 양수를 유지해야한다.)
+// hold violation :
+//     din이 clk edge보다 빠르게 도착할 때 발생.clock line에 buffer를 추가하여 위상을 맞춰야 한다.
+
 
 //26====================================================================================
-enable과 clk의 위상차가 발생할 때, 즉 동기화되지 않았을 때 , gclk에 glitch가 발생하여 ff이 오동작 할 수 있다.
-해결방법: glitch freebux를 사용하여 게이티드 클럭을 사용해야한다.
-glitch_free_mux란??-숙제
+// enable과 clk의 위상차가 발생할 때, 즉 동기화되지 않았을 때 , gclk에 glitch가 발생하여 ff이 오동작 할 수 있다.
+// 해결방법: glitch freebux를 사용하여 게이티드 클럭을 사용해야한다.
+// glitch_free_mux란??-숙제
+
+
 //27====================================================================================
-메타스테빌리티 발생 원인 clk edge(setup/holde)시간에 입력값 이 변경되는 경우 출력갑싱 안정되지 못하는 원인이된다.
-cdc환경에서 주로 발생 할 수 있다.
-negative slack 이 음수일 경우: clk주파수를 낮춘다. pipe처리(combinational logic 사이에 sl을 추가)
+// 메타스테빌리티 발생 원인 clk edge(setup/holde)시간에 입력값 이 변경되는 경우 출력갑싱 안정되지 못하는 원인이된다.
+// cdc환경에서 주로 발생 할 수 있다.
+// negative slack 이 음수일 경우: clk주파수를 낮춘다. pipe처리(combinational logic 사이에 sl을 추가)
+
+
 //28====================================================================================
-수신
-meta stability가 수신쪽 ff의 입력과 클럭이 동기되지 않았기 때문
+// 수신
+// meta stability가 수신쪽 ff의 입력과 클럭이 동기되지 않았기 때문
+
+
 //29====================================================================================
-(a)o
-(b)o
-(c)x
-(d)o
+// (a)o
+// (b)o
+// (c)x
+// (d)o
+
+
 //30====================================================================================
 //31====================================================================================
 //32====================================================================================
-각 bit별 skew time이 발생 할 수 있다.
-해결책: 비동기식 fifo처리 ,gray code,hand shake
+// 각 bit별 skew time이 발생 할 수 있다.
+// 해결책: 비동기식 fifo처리 ,gray code,hand shake
+
+
+//33====================================================================================
+// module seq_det_1011_moore (
+//     input clk,
+//     rst_n,
+//     din,
+//     output reg found
+// );
+//     parameter [2:0] IDLE=3'b000, S1=3'b001, S2=3'b010, S3=3'b011, S4=3'b100;
+//     reg [2:0] c_state, n_state;
+//     reg found_next;
+
+//     always @(posedge clk, negedge rst_n) begin
+//         if (!rst_n) begin
+//             found   <= 0;
+//             c_state <= IDLE;
+//         end else begin
+//             found   <= found_next;
+//             c_state <= n_state;
+//         end
+//     end
+
+//     always @(*) begin
+//         n_state = c_state;
+//         found_next = 0;
+//         case (c_state)
+//             IDLE: begin
+//                 if (din) n_state = S1;
+//             end
+//             S1: if (!din) n_state = S2;
+//             S2: begin
+//                 if (din) n_state = S3;
+//                 else n_state = IDLE;
+//             end
+//             S3: begin
+//                 if (din) n_state = S4;
+//                 else n_state = S2;
+//             end
+//             S4: begin
+//                 found_next = 1;
+//                 if (din) n_state = S1;
+//                 else n_state = IDLE;
+//             end
+//             default: n_state = IDLE;
+//         endcase
+//     end
+// endmodule
+
 //37====================================================================================
+module buggy #(
+    parameter N = 10
+) (
+    input            clk,
+    input            rst,
+    input            en,
+    input      [7:0] din,
+    output reg [7:0] dout,
+    output reg       tick
+);
+    reg [$clog2(N+1)-1:0] cnt;
+    reg [7:0] tmp;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            cnt  <= 0;
+            tick <= 0;
+            dout <= 0;
+        end else begin
+            
+            if (en) begin
+                dout <= tmp;
+                if (cnt == N) begin
+                    cnt  <= 0;
+                    tick <= 1;
+                end else begin
+                    tick <= 0;
+                    cnt  <= cnt + 1;
+                end
+            end
+        end
+    end
+
+    always @(din or en) begin
+        if (en) tmp = din + 1;
+        else tmp = 0;
+    end
+
+endmodule
